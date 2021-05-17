@@ -7,13 +7,14 @@ import (
 	"github.com/codeedu/fc2-grpc/pb"
 	"github.com/codeedu/fc2-grpc/services"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
 	// o pacote net já vem embutido no go, e ele tem uma função
 	// de listerner para escutar eventos
 
-	lis, err := net.Listen("tcp", "localhost:5051")
+	lis, err := net.Listen("tcp", "localhost:50051")
 
 	// escutando a porta
 	if err != nil {
@@ -24,6 +25,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 	// registra o serviço
 	pb.RegisterUserServiceServer(grpcServer, services.NewUserService())
+	reflection.Register(grpcServer)
 
 	// servidor escutando
 	if err := grpcServer.Serve(lis); err != nil {

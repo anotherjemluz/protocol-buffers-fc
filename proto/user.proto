@@ -9,7 +9,19 @@ message User {
     string email = 3;
 }
 
+// imagina que o processo de criação do usuário do seu sistema leva
+// muito tempo e envolve muitas etapas. Vamos implementar abaixo  
+// um exemplo da utilização de stream para este cenário, dessa forma 
+// o status do usuário sempre será informado em tempo real, não 
+// precisando esperar até o fim do processo de criação para saber se
+// tudo ocorreu bem 
+message UserResultStream {
+    string status = 1;
+    User user = 2;
+}
+
 // definição do rpc (server function)
 service UserService {
     rpc AddUser(User) returns (User);
+    rpc AddUserVerbose(User) returns (stream UserResultStream);
 }
