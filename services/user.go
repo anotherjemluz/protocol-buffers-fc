@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
 	"time"
 
 	"github.com/codeedu/fc2-grpc/pb"
@@ -11,6 +13,7 @@ import (
 // type UserServiceClient interface {
 // 	AddUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*User, error)
 // 	AddUserVerbose(ctx context.Context, in *User, opts ...grpc.CallOption) (UserService_AddUserVerboseClient, error)
+// AddUsers(ctx context.Context, opts ...grpc.CallOption) (UserService_AddUsersClient, error)
 // }
 
 type UserService struct {
@@ -85,4 +88,37 @@ func (*UserService) AddUserVerbose(req *pb.User, stream pb.UserService_AddUserVe
 
 	return nil
 
+}
+
+func (*UserService) AddUsers(stream pb.UserService_AddUsersServer) error {
+
+	// cria uma lista vazia de usuários
+	users := []*pb.User{}
+
+	// começa a receber o streaming num loop infinito
+	for {
+		req, err := stream.Recv()
+
+		// se parar de receber (se o cliente para de enviar informação)
+		if err == io.EOF {
+			// envia a lista de usuários em seu estado atual
+			return stream.SendAndClose(&pb.Users{
+				User: users,
+			})
+		}
+
+		// tratamento de erros
+		if err != nil {
+			log.Fatalf("Error receiving stream: %v", err)
+		}
+
+		// ao fim do for ele vai pegar esse user abaixo e atualizar a lista de usuários usando append
+		users = append(users, &pb.User{
+			Id:    req.GetId(),
+			Name:  req.GetName(),
+			Email: req.GetEmail(),
+		})
+
+		fmt.Println("Adding", req.GetName())
+	}
 }
